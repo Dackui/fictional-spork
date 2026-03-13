@@ -157,15 +157,31 @@ client.on('messageCreate', async (message) => {
   }
 
   // ========== STICKERS ==========
-  if (message.stickers.size > 0 && !flags.respondedSticker) {
-    const sticker = message.stickers.first();
-    if (sticker.name.toLowerCase().includes('esta')) {
-      flags.respondedSticker = true;
-      message.reply("_¡Ah chinga, ya sacó la longaniza del metro!_ 🚇");
-      setTimeout(() => flags.respondedSticker = false, 5000);
-    }
-    return;
+if (message.stickers.size > 0 && !flags.respondedSticker) {
+  const sticker = message.stickers.first();
+  if (sticker.name.toLowerCase().includes('esta')) {
+    flags.respondedSticker = true;
+
+    const respuestas = [
+      "_¡Ah chinga, ya sacó la longaniza del metro!_ 🚇",
+      "_¿Tienes frío o así está siempre?_ 🥶",
+      "_¡Guárdala, que espantas a los niños!_ 😳",
+      "_¿Eso es de exhibición o sí sirve?_ 🤨",
+      "_¡Órale! Hasta se me cayó el chicle del susto._ 😮",
+      "_Cálmate, mi rey, que esto no es vitrina._ 🪟",
+      "_¡Aguas! Que luego lo confunden con poste._ 🚧",
+      "_¿Eso viene con manual o nomás presumes?_ 📖",
+      "_¡Tranquilo campeón, que aquí no es concurso!_ 🏆",
+      "_¿Eso es tamaño real o versión inflable?_ 🎈"
+    ];
+
+    const respuesta = respuestas[Math.floor(Math.random() * respuestas.length)];
+    message.reply(respuesta);
+
+    setTimeout(() => flags.respondedSticker = false, 5000);
   }
+  return;
+}
 
   // ========== MENSAJES REPETIDOS ==========
   const key = `${message.channel.id}-${message.author.id}`;
