@@ -15,6 +15,7 @@ const client = new Client({
 });
 
 console.log('🚀 Intentando iniciar sesión con Discord...');
+console.log('Token cargado:', process.env.TOKEN ? 'SÍ existe' : 'NO existe o está vacío');
 client.login(process.env.TOKEN)
   .then(() => console.log('✅ Login promesa resuelta'))
   .catch(err => {
