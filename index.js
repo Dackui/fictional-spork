@@ -126,6 +126,35 @@ client.on('messageCreate', async (message) => {
     setTimeout(() => flags.responder13 = false, 5000);
     return;
   }
+   
+  if (!flags.responderhuevos && /(huevos|buebos|huevitos|buebitos)/.test(texto)) {
+    flags.responderhuevos = true;
+    const respuestas = [
+        "_¡Chupas y dejas nuevos!_ 😏",
+        "_¡De esos no te faltan!_ 🥚",
+        "_¡Dos, bien puestos!_ 😏"
+    ];
+    message.reply(respuestas[Math.floor(Math.random() * respuestas.length)]);
+    setTimeout(() => flags.responderhuevos = false, 5000);
+    return;
+  }
+
+  if (texto.startsWith('!consejo')) {
+    const consejos = [
+        "_Si tienes frío, párate en una esquina, que las esquinas son 90 grados_ 🌡️",
+        "_Nunca discutas con un idiota, te bajará a su nivel y te ganará con experiencia_ 🧠",
+        "_Si la vida te da limones, véndelos, ahorita están caros_ 🍋",
+        "_El que madruga, amanece cansado_ 😴",
+        "_Antes de hablar, asegúrate de tener algo que decir_ 🤐",
+        "_Si algo puede salir mal, sal corriendo_ 🏃",
+        "_El dinero no da la felicidad, pero es mejor llorar en un Uber que en el camión_ 🚗",
+        "_No dejes para mañana lo que puedes echarle la culpa a otro hoy_ 👆",
+        "_El amor es ciego, pero los vecinos no_ 👀",
+        "_Si te caes, levántate. Si no puedes, quédate ahí, alguien te tomará foto_ 📸"
+    ];
+    message.reply(consejos[Math.floor(Math.random() * consejos.length)]);
+    return;
+  }
 
   // ========== STICKERS ==========
   if (message.stickers.size > 0 && !flags.respondedSticker) {
