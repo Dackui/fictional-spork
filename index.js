@@ -147,13 +147,3 @@ client.on('messageCreate', async (message) => {
     userMessageCounts.set(key, { count: 0 });
   }
 });
-
-app.get('/', (req, res) => res.send('Bot activo 😎'));
-app.listen(PORT, () => console.log(`Keep-alive listo en puerto ${PORT}`));
-
-function keepAlive() {
-  axios.get(SELF_URL)
-    .then(res => console.log(`[KEEP-ALIVE] Ping OK: ${res.status}`))
-    .catch(err => console.error(`[KEEP-ALIVE] Error:`, err.message));
-}
-setInterval(keepAlive, 30 * 1000);
