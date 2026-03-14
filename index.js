@@ -1,9 +1,215 @@
-   // ========== MENSAJES REPETIDOS ==========
-   // const key = `${message.channel.id}-${message.author.id}`;
-   // const last = userMessageCounts.get(key) || { count: 0 };
-   // last.count += 1;
-   // userMessageCounts.set(key, last);
-   // if (last.count >= 6) {
-   //   message.reply("_Ya siéntese, mi todo tibio_ 🪑");
-   //   userMessageCounts.set(key, { count: 0 });
-   // }
+// ============================
+// CONFIGURACIÓN Y CLIENTE DISCORD
+// ============================
+const { Client, GatewayIntentBits } = require('discord.js');
+require('dotenv').config();
+const axios = require('axios');
+
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMessageReactions
+  ]
+});
+
+console.log('🚀 Intentando iniciar sesión con Discord...');
+client.login(process.env.TOKEN)
+  .then(() => console.log('✅ Login promesa resuelta'))
+  .catch(err => {
+    console.error('❌ Error directo al hacer login:', err);
+    process.exit(1);
+  });
+
+client.on('ready', () => {
+  console.log(`🎉 Bot conectado correctamente como ${client.user.tag}`);
+});
+client.on('error', (err) => console.error('🚨 Discord client error:', err));
+client.on('shardError', (err) => console.error('🚨 Shard error:', err));
+client.on('warn', (info) => console.warn('⚠️ Discord client warning:', info));
+
+// ============================
+// FLAGS PARA ANTI-SPAM
+// ============================
+const userMessageCounts = new Map();
+const flags = {
+  respondedSticker: false,
+  respondedMention: false,
+  responderSaludo: false,
+  responderErga: false,
+  responderHuevo: false,
+  responderSed: false,
+  responder13: false,
+  responderCalor: false,
+  responderFrio: false,
+  responderBlanco: false,
+  responderCinco: false,
+  responderHueva: false,
+  responderDefine: false,
+  responderhuevos: false,
+  responderMadre: false
+};
+
+// ============================
+// RESPUESTAS A MENSAJES
+// ============================
+client.on('messageCreate', async (message) => {
+  if (message.author.bot) return;
+  const texto = message.content.toLowerCase();
+
+  // ========== DEFINICIONES ==========
+  if (texto.startsWith('!define')) {
+    const query = texto.replace('!define', '').trim();
+    if (!query) {
+      const respuestasDefine = [
+        '_Dime qué quieres que te defina, mi wikipedia sin conexión 📚_',
+        '_Pregúntame, caón, pregúntame 💪🏻_',
+        "_¿Qué quieres que te defina? Si no, te lo resumo_ 🥴",
+        "_¿A poco no te la sabes? Échate la pregunta 👊🏽_"
+      ];
+      message.reply(respuestasDefine[Math.floor(Math.random() * respuestasDefine.length)]);
+      return;
+    }
+    try {
+      const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_redirect=1&kl=es-es`;
+      const res = await axios.get(url);
+      const data = res.data;
+      let definicion = data.Abstract || data.Definition ||
+                       (data.RelatedTopics?.length ? data.RelatedTopics[0].Text : null);
+      if (!definicion) {
+        message.reply("_Ni doña pelos sabe qué es eso, mijares 🤯_");
+      } else {
+        const remate = [
+          "_Con eso ya puedes aparentar en la peda 🍻_",
+          "_Ahora sí, a fingir que ya te la sabías, mi todo tibio 🙌🏽_",
+          "_Pa' que no se diga que no se viene a aprender en este cuchitril, mi jardín 🤓_",
+          "_Con eso y una mona de guayaba, serás el más sácatelas de la cuadra 🤧_"
+        ];
+        message.reply(`**${query}:** ${definicion}\n${remate[Math.floor(Math.random() * remate.length)]}`);
+      }
+    } catch (err) {
+      console.error("Error en definición: ", err.message);
+      message.reply("_Se cayó el diccionario de tepito, es que me tiraron de cabeza de morrito 👶🏻_");
+    }
+    return;
+  }
+
+  // ========== CONSEJO ==========
+  if (texto.startsWith('!consejo')) {
+    const consejos = [
+      "_Si tienes frío, párate en una esquina, que las esquinas son 90 grados_ 🌡️",
+      "_Nunca discutas con un idiota, te bajará a su nivel y te ganará con experiencia_ 🧠",
+      "_Si la vida te da limones, véndelos, ahorita están caros_ 🍋",
+      "_El que madruga, amanece cansado_ 😴",
+      "_Antes de hablar, asegúrate de tener algo que decir_ 🤐",
+      "_Si algo puede salir mal, sal corriendo_ 🏃",
+      "_El dinero no da la felicidad, pero es mejor llorar en un Uber que en el camión_ 🚗",
+      "_No dejes para mañana lo que puedes echarle la culpa a otro hoy_ 👆",
+      "_El amor es ciego, pero los vecinos no_ 👀",
+      "_Si te caes, levántate. Si no puedes, quédate ahí, alguien te tomará foto_ 📸"
+    ];
+    message.reply(consejos[Math.floor(Math.random() * consejos.length)]);
+    return;
+  }
+
+  // ========== SALUDO ==========
+  if (!flags.responderSaludo && /(hola|buen[oa]s?\s?(d[ií]as?|tardes?|noches?)|qué onda|que onda|q onda)/.test(texto)) {
+    flags.responderSaludo = true;
+    const horaUTC = new Date().getUTCHours();
+    const hora = (horaUTC + 18) % 24;
+    let respuestasSaludo = hora < 12 ?
+      ["_¡Buenos días, mi café con pan!_ ☕🥖", "_¿Qué tal amaneció la banda?_", "_Cámara, no hay cruda que aguante este saludo mañanero_ 🌅"] :
+      hora < 20 ?
+      ["_¡Buenas las tortas, mi rey!_ 🥪", "_¿Qué Pachuca por Toluca esta tarde?_"] :
+      ["_¡Buenas noches, mi cobija con hoyos!_ 🛌", "_¿Qué onda? ¿Ya sacaste la pijama del PRI?_"];
+    message.reply(respuestasSaludo[Math.floor(Math.random() * respuestasSaludo.length)]);
+    setTimeout(() => flags.responderSaludo = false, 5000);
+    return;
+  }
+
+  // ========== ALBURES ==========
+  if (!flags.responderErga && /([bv]erga|pito|pitillo|pene|nepe)/.test(texto)) {
+    flags.responderErga = true;
+    const respuestas = [
+      "_¡Comes!_ 😏",
+      "_¡La pruebas y me dices!_ 😏",
+      "_¡Métete esa y el cambio!_ 😏"
+    ];
+    message.reply(respuestas[Math.floor(Math.random() * respuestas.length)]);
+    setTimeout(() => flags.responderErga = false, 5000);
+    return;
+  }
+
+  if (!flags.responder13 && /(13|12+1|10+3|trece|trese)/.test(texto)) {
+    flags.responder13 = true;
+    const respuestas = [
+      "_¡Entre más me la mamas, más me crece!_ 😏",
+      "_¡Trece pulgadas de ya sabes qué!_ 😏",
+      "_¡Ese número me lo tatuaría donde tú sabes!_ 😏"
+    ];
+    message.reply(respuestas[Math.floor(Math.random() * respuestas.length)]);
+    setTimeout(() => flags.responder13 = false, 5000);
+    return;
+  }
+
+  if (!flags.responderhuevos && /(huevos|buebos|huevitos|buebitos)/.test(texto)) {
+    flags.responderhuevos = true;
+    const respuestas = [
+      "_¡Chupas y dejas nuevos!_ 😏",
+      "_¡De esos no te faltan!_ 🥚",
+      "_¡Dos, bien puestos!_ 😏"
+    ];
+    message.reply(respuestas[Math.floor(Math.random() * respuestas.length)]);
+    setTimeout(() => flags.responderhuevos = false, 5000);
+    return;
+  }
+
+  if (!flags.responderMadre && /(tu madre|tu jefa|tu ama)/.test(texto)) {
+    flags.responderMadre = true;
+    const respuestas = [
+      "_¡La tuya en chanclas!_ 👡",
+      "_¡La tuya con todo y changarro!_ 🛒",
+      "_¡Y la tuya de propina!_ 🤌"
+    ];
+    message.reply(respuestas[Math.floor(Math.random() * respuestas.length)]);
+    setTimeout(() => flags.responderMadre = false, 5000);
+    return;
+  }
+
+  // ========== STICKERS ==========
+  if (message.stickers.size > 0 && !flags.respondedSticker) {
+    const sticker = message.stickers.first();
+    if (sticker.name.toLowerCase().includes('esta')) {
+      flags.respondedSticker = true;
+      message.reply("_¡Ah chinga, ya sacó la longaniza del metro!_ 🚇");
+      setTimeout(() => flags.respondedSticker = false, 5000);
+    }
+    return;
+  }
+
+  // ========== MENSAJES REPETIDOS ==========
+  const key = `${message.author.id}`;
+  const now = Date.now();
+  const userData = userMessageCounts.get(key) || { count: 0, firstMessage: now };
+
+  if (now - userData.firstMessage > 10000) {
+    userMessageCounts.set(key, { count: 1, firstMessage: now });
+    return;
+  }
+
+  userData.count += 1;
+  userMessageCounts.set(key, userData);
+
+  if (userData.count >= 6) {
+    const respuestas = [
+      "_Ya siéntese, mi todo tibio_ 🪑",
+      "_¿Ya te tomaste tu medicamento hoy?_ 💊",
+      "_Respira, mi amor, respira_ 🧘",
+      "_Tanta necesidad de atención, mi cielo_ 🌟",
+      "_Ya cállese, mi cariño_ 🤫"
+    ];
+    message.reply(respuestas[Math.floor(Math.random() * respuestas.length)]);
+    userMessageCounts.set(key, { count: 0, firstMessage: now });
+  }
+});
