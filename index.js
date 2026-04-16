@@ -485,16 +485,12 @@ client.on('messageCreate', async (message) => {
           }
         }
 
-        if (!definicion) {
-          await replyWithControl(
-            message,
-            'define',
-            'defineFail',
-            RESPUESTAS.defineFail,
-            DEFINE_REPLY_PROBABILITY
-          );
-          return;
-        }
+      if (!definicion) {
+        const fail = pickRandom('defineFail', RESPUESTAS.defineFail);
+        await message.reply(fail || "_No encontré ni madres, la neta._ 🫥");
+        markTrigger(message, 'define');
+        return;
+      }
 
 
         const remate = pickRandom('defineRemate', RESPUESTAS.defineRemate);
@@ -510,16 +506,14 @@ client.on('messageCreate', async (message) => {
         markTrigger(message, 'define');
         return;
       } catch (err) {
-        console.error('Error en definición:', err.message);
-        await replyWithControl(
-          message,
-          'define',
-          'defineError',
-          RESPUESTAS.defineError,
-          DEFINE_REPLY_PROBABILITY
-        );
-        return;
-      }
+           console.error('Error en definición:', err.message);
+         
+           const errorMsg = pickRandom('defineError', RESPUESTAS.defineError);
+           await message.reply(errorMsg || "_Ahorita no traigo datos, mi rey._ 📵");
+         
+           markTrigger(message, 'define');
+           return;
+         }
     }
 
     /* ===== STICKERS ===== */
