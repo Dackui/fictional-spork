@@ -68,6 +68,8 @@ const TRIGGER_COOLDOWNS = {
   sticker_esta: 5 * 60 * 1000,
   sticker_pooh: 5 * 60 * 1000,
   define: 30 * 1000,
+  consejo: 30 * 1000,
+  ortografia: 5 * 60 * 1000,
   flood: 10 * 60 * 1000
 };
 
@@ -341,6 +343,29 @@ const RESPUESTAS = {
     "_Ay, ya se arrepintió la criatura._ 🫢",
     "_Eso no se borra ni con jabón Zote._ 🧼",
     "_Se echó pa' atrás el poeta del barrio._ 🎭"
+  ],
+
+  consejos: [
+    "_Consejo del día: nunca confíes en alguien que dice 'ahorita llego' desde Indios Verdes._ 🚌",
+    "_Consejo fino: si ya dijiste 'última chela', todavía faltan tres._ 🍻",
+    "_Consejo de barrio: el que se enoja, pierde; el que se ríe, cobra._ 😎",
+    "_Consejo espiritual: no tomes decisiones importantes con hambre y doce pesos en la cuenta._ 🧾",
+    "_Consejo de microbús: agárrate bien, porque la vida no frena en topes._ 🚐",
+    "_Consejo de oro: no le escribas a tu ex, mejor cómprate unos tacos._ 🌮",
+    "_Consejo de la calle: si algo suena demasiado barato, probablemente viene sin cargador._ 📦",
+    "_Consejo godín: no abras Excel después de las 6 si todavía valoras tu alma._ 💻"
+  ],
+
+  ortografia: [
+    "_¿Yoyis?_",
+    "_Mi rey, esa palabra salió atropellada por un microbús._ 🚌",
+    "_Escríbelo otra vez, pero ahora sin aventarlo por las escaleras._ 🪜",
+    "_No entendí si preguntaste o invocaste un demonio del Metro._ 🚇",
+    "_Eso no fue falta de ortografía, fue crimen lingüístico._ 🚔",
+    "_La RAE acaba de bloquearte, mi todo teclado._ 📚",
+    "_Mi compa, esa frase llegó en combi pirata y sin placas._ 🚐",
+    "_Repite eso, pero usando las manos y no el codo._ ✍️",
+    "_¿Eso era español o contraseña del WiFi de una fonda?_ 📶"
   ]
 };
 
@@ -385,10 +410,22 @@ client.on('messageCreate', async (message) => {
     const texto = (message.content || '').toLowerCase().trim();
     const isPlainText = isTextOnlyMessage(message);
 
+    /* ===== !CONSEJO ===== */
+    if (texto === '!consejo') {
+      if (!triggerAvailable(message, 'consejo')) return;
+
+      const consejo = pickRandom('consejos_group', RESPUESTAS.consejos);
+      if (!consejo) return;
+
+      await message.reply(consejo);
+      markTrigger(message, 'consejo');
+      return;
+    }
+
+
     /* ===== !define ===== */
     if (texto.startsWith('!define')) {
       if (!triggerAvailable(message, 'define')) return;
-      if (!userCanReceiveReply(message.author.id)) return;
 
       const query = texto.replace('!define', '').trim();
 
@@ -404,15 +441,49 @@ client.on('messageCreate', async (message) => {
       }
 
       try {
-        const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_redirect=1&kl=es-es`;
-        const res = await axios.get(url);
-        const data = res.data;
+        let definicion = null;
+        let fuente = null;
 
-        const definicion =
-          data.Abstract ||
-          data.Definition ||
-          data.RelatedTopics?.[0]?.Text ||
-          null;
+        /* ===== 1) WIKIPEDIA ES ===== */
+        try {
+          const wikiUrl = `https://es.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`;
+
+          const wikiRes = await axios.get(wikiUrl, {
+            headers: {
+              'User-Agent': 'DiscordBotChaca/1.0'
+            }
+          });
+
+          if (
+            wikiRes.data &&
+            wikiRes.data.extract &&
+            !wikiRes.data.type?.includes('disambiguation')
+          ) {
+            definicion = wikiRes.data.extract;
+            fuente = 'Wikipedia';
+          }
+        } catch (wikiErr) {
+          console.log('Wikipedia no encontró definición:', wikiErr.message);
+        }
+
+        /* ===== 2) FALLBACK DUCKDUCKGO ===== */
+        if (!definicion) {
+          try {
+            const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_redirect=1&kl=es-es`;
+            const ddgRes = await axios.get(ddgUrl);
+            const data = ddgRes.data;
+
+            definicion =
+              data.Abstract ||
+              data.Definition ||
+              data.RelatedTopics?.[0]?.Text ||
+              null;
+
+            if (definicion) fuente = 'DuckDuckGo';
+          } catch (ddgErr) {
+            console.log('DuckDuckGo tampoco encontró definición:', ddgErr.message);
+          }
+        }
 
         if (!definicion) {
           await replyWithControl(
@@ -425,12 +496,17 @@ client.on('messageCreate', async (message) => {
           return;
         }
 
-        if (!userCanReceiveReply(message.author.id)) return;
-        if (!triggerAvailable(message, 'define')) return;
 
         const remate = pickRandom('defineRemate', RESPUESTAS.defineRemate);
-        await message.reply(`**${query}:** ${definicion}\n${remate}`);
-        markUserReply(message.author.id);
+
+        // Limita texto para que no mande biblias
+        const definicionCorta =
+          definicion.length > 700
+            ? definicion.slice(0, 700).trim() + '...'
+            : definicion;
+
+        await message.reply(`**${query}:** ${definicionCorta}\n_Fuente: ${fuente}._\n${remate}`);
+
         markTrigger(message, 'define');
         return;
       } catch (err) {
@@ -481,6 +557,17 @@ client.on('messageCreate', async (message) => {
       return;
     }
 
+         /* ===== ORTOGRAFÍA HORRIBLE ===== */
+    if (/\b(prejunta|pregumta|preguntq|me justa|me guta|grasias|ola k ase|aber|haiga|haci|asiendo|enserio|encerio|vistes|fuistes|hicistes|dijistes|nadien|ocupo saber|ke|kiero|qiero)\b/.test(texto)) {
+      const sent = await replyWithControl(
+        message,
+        'ortografia',
+        'ortografia_group',
+        RESPUESTAS.ortografia,
+        0.6
+      );
+      if (sent) return;
+    }
     /* ===== MENCIONES ===== */
     let isReplyToBot = false;
     if (message.reference?.messageId) {
