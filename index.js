@@ -67,9 +67,9 @@ const TRIGGER_COOLDOWNS = {
   mention: 3 * 60 * 1000,
   sticker_esta: 5 * 60 * 1000,
   sticker_pooh: 5 * 60 * 1000,
-  define: 30 * 1000,
-  consejo: 30 * 1000,
-  ortografia: 5 * 60 * 1000,
+  define: 5 * 1000,
+  consejo: 5 * 1000,
+  ortografia: 5 * 1000,
   flood: 10 * 60 * 1000
 };
 
@@ -183,6 +183,15 @@ async function replyWithControl(
   markUserReply(message.author.id);
   markTrigger(message, triggerName);
   return true;
+}
+
+function getTriggerRemainingMs(message, triggerName) {
+  const key = triggerKey(message.guildId, message.channelId, triggerName);
+  const last = state.triggerCooldowns.get(key) || 0;
+  const cooldown = TRIGGER_COOLDOWNS[triggerName] || 60000;
+  const remaining = cooldown - (now() - last);
+
+  return remaining > 0 ? remaining : 0;
 }
 
 /* =========================
@@ -425,7 +434,13 @@ client.on('messageCreate', async (message) => {
 
     /* ===== !define ===== */
     if (texto.startsWith('!define')) {
-      if (!triggerAvailable(message, 'define')) return;
+        const remaining = getTriggerRemainingMs(message, 'define');
+      
+        if (remaining > 0) {
+          const seconds = Math.ceil(remaining / 1000);
+          await message.reply(`_Aguanta ${seconds}s, mi diccionario de combi todavía está cargando._ 🚌`);
+          return;
+        }
 
       const query = texto.replace('!define', '').trim();
 
