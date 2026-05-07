@@ -408,6 +408,16 @@ const PINCHES = [
     nombre: 'akmo',
     aliases: ['akmo', 'akm', 'akmodhan', 'akmodan'],
     url: 'https://media.discordapp.net/attachments/1441884248234655766/1501405530256572558/image.png'
+  },
+  {
+    nombre: 'gato',
+    aliases: ['gato', 'gatito', 'lavadora'],
+    url: 'https://media.discordapp.net/attachments/1441884248234655766/1501788597194588180/image.png'
+  },
+  {
+    nombre: 'coco',
+    aliases: ['coco', 'cocodrilo', 'cocoloco'],
+    url: 'https://media.discordapp.net/attachments/1441884248234655766/1501788770264158308/image.png'
   }
 ];
 
