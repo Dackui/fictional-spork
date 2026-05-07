@@ -378,6 +378,43 @@ const RESPUESTAS = {
   ]
 };
 
+const PINCHES = [
+  {
+    nombre: 'val',
+    aliases: ['val', 'valark'],
+    url: 'https://media.discordapp.net/attachments/1385452767954604042/1501583980556976219/image-1.png'
+  },
+  {
+    nombre: 'jagg',
+    aliases: ['jagg', 'jagger', 'jaggerr', 'grimm'],
+    url: 'https://media.discordapp.net/attachments/1441884248234655766/1501404101106335745/image.png'
+  },
+  {
+    nombre: 'meen',
+    aliases: ['meen', 'meenah', 'meena', 'min'],
+    url: 'https://media.discordapp.net/attachments/1441884248234655766/1501404772408885350/image.png'
+  },
+  {
+    nombre: 'lic',
+    aliases: ['lic', 'licenciado', 'nahual', 'lisensiado'],
+    url: 'https://media.discordapp.net/attachments/1441884248234655766/1501404772757143672/image.png'
+  },
+  {
+    nombre: 'yoyis',
+    aliases: ['yoyis', 'iois', 'yoyo'],
+    url: 'https://media.discordapp.net/attachments/1441884248234655766/1501405529136697515/image.png'
+  },
+  {
+    nombre: 'akmo',
+    aliases: ['akmo', 'akm', 'akmodhan', 'akmodan'],
+    url: 'https://media.discordapp.net/attachments/1441884248234655766/1501405530256572558/image.png'
+  }
+];
+
+const PINCHES_RANDOM = [
+  'https://media.discordapp.net/attachments/1441884248234655766/1501404101576233091/image.png',
+  'https://pbs.twimg.com/media/FxoZPTsXwAAxJen.jpg'
+];
 /* =========================
    EVENTOS
 ========================= */
@@ -429,6 +466,29 @@ client.on('messageCreate', async (message) => {
       await message.reply(consejo);
       markTrigger(message, 'consejo');
       return;
+    }
+
+        /* ===== !STICKERS PINCHE ===== */
+    if (texto.startsWith('!pinche')) {
+        const partes = texto.split(' ');
+        const argumento = partes[1]?.toLowerCase().trim();
+
+        if (!argumento) {
+            const randomUrl = pickRandom('pinches_random_group', PINCHES_RANDOM);
+            await message.reply(randomUrl);
+            return;
+        }
+
+        const pinche = PINCHES.find(p => p.aliases.includes(argumento));
+
+        if (pinche) {
+            await message.reply(pinche.url);
+            return;
+        }
+
+        const randomUrl = pickRandom('pinches_random_group', PINCHES_RANDOM);
+        await message.reply(randomUrl);
+        return;
     }
 
 
