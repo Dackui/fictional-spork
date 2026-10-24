@@ -72,6 +72,7 @@ const TRIGGER_COOLDOWNS = {
   ortografia: 5 * 1000,
   flood: 10 * 60 * 1000
 };
+const MODO_BOT = 'auto';
 
 // probabilidad de responder
 const DEFAULT_REPLY_PROBABILITY = 0.35;
@@ -177,9 +178,21 @@ async function replyWithControl(
   if (!shouldReply(probability)) return false;
 
   const respuestasFinales =
-  esHalloween() && RESPUESTAS_HALLOWEEN[triggerName]
-    ? RESPUESTAS_HALLOWEEN[triggerName]
-    : responses;
+   function esHalloween() {
+     if (MODO_BOT === 'halloween') return true;
+     if (MODO_BOT === 'normal') return false;
+   
+     const fecha = new Date();
+   
+     const mes = Number(
+       new Intl.DateTimeFormat('en-US', {
+         timeZone: 'America/Mexico_City',
+         month: 'numeric'
+       }).format(fecha)
+     );
+   
+     return mes === 10;
+   }
 
    const text = pickRandom(responseGroup, respuestasFinales);
   if (!text) return false;
