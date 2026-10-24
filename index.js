@@ -176,7 +176,12 @@ async function replyWithControl(
   if (!triggerAvailable(message, triggerName)) return false;
   if (!shouldReply(probability)) return false;
 
-  const text = pickRandom(responseGroup, responses);
+  const respuestasFinales =
+  esHalloween() && RESPUESTAS_HALLOWEEN[triggerName]
+    ? RESPUESTAS_HALLOWEEN[triggerName]
+    : responses;
+
+   const text = pickRandom(responseGroup, respuestasFinales);
   if (!text) return false;
 
   await message.reply(text);
@@ -192,6 +197,19 @@ function getTriggerRemainingMs(message, triggerName) {
   const remaining = cooldown - (now() - last);
 
   return remaining > 0 ? remaining : 0;
+}
+
+function esHalloween() {
+  const fecha = new Date();
+
+  const mes = Number(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Mexico_City',
+      month: 'numeric'
+    }).format(fecha)
+  );
+
+  return mes === 10;
 }
 
 /* =========================
@@ -425,6 +443,34 @@ const PINCHES_RANDOM = [
   'https://media.discordapp.net/attachments/1441884248234655766/1501404101576233091/image.png',
   'https://pbs.twimg.com/media/FxoZPTsXwAAxJen.jpg'
 ];
+
+const RESPUESTAS_HALLOWEEN = {
+  erga: [
+    "_Aaaaagh... ¡COMES, CARNAL!... grrrrr._ 🧟",
+    "_¡CHUPAAAS!... aaaaagh... hasta sin mandíbula, cabrón._",
+    "_Grrrr... ¿otra vez pensando en eso, pinche goloso?_"
+  ],
+
+  saludoManana: [
+    "_Aaaaagh... ¿qué pasó, pinche vivo? ¿Ya vienes a chingar?_ 🧟",
+    "_Quiúbole, carnal... grrrrr... ¿traes sesos o puro aire?_"
+  ],
+
+  hueva: [
+    "_No mames, llevo tres días enterrado y tengo más ganas de jalar que tú._",
+    "_Aaaaagh... ¡levántate, cabrón! Hasta los muertos chambeamos._"
+  ],
+
+  huevos: [
+    "_¡CHUPAAAS!... grrrrr... y dejas los huesos nuevos._",
+    "_Aaaaagh... ¡CROMAS!... pinche vivo mañoso._"
+  ],
+
+  mention: [
+    "_Aaaaagh... ¿ora qué chingados quieres, carnal?_",
+    "_Grrrr... estaba tragando sesos, no estés mamando._"
+  ]
+};
 /* =========================
    EVENTOS
 ========================= */
